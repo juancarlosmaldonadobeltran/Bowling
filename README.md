@@ -1,3 +1,5 @@
+[![](https://api.travis-ci.org/juancarlosmaldonadobeltran/Bowling.svg)](https://travis-ci.org/juancarlosmaldonadobeltran/Bowling)
+
 # Multi player Ten-pin Bowling Game
 
 A console app for Ten-pin Bowling score calculation.
