@@ -1,6 +1,6 @@
 package com.company.bowling;
 
-import com.company.bowling.command.BowlingGameFileReaderCommand;
+import com.company.bowling.command.BowlingGameCommand;
 import com.company.bowling.config.ModuleConfig;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -10,10 +10,10 @@ import java.util.Arrays;
 
 public class BowlingGameApp {
 
-    private BowlingGameFileReaderCommand command;
+    private BowlingGameCommand command;
 
     @Inject
-    public BowlingGameApp(BowlingGameFileReaderCommand command) {
+    public BowlingGameApp(BowlingGameCommand command) {
         this.command = command;
     }
 
