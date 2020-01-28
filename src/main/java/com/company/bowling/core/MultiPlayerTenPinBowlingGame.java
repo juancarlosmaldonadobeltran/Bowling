@@ -5,7 +5,9 @@ import com.company.bowling.core.exception.PlayerConsecutiveRollsNotValidExceptio
 import com.company.bowling.core.factory.BowlingGameFactory;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class MultiPlayerTenPinBowlingGame implements MultiPlayerBowlingGame {
 
@@ -28,9 +30,12 @@ public class MultiPlayerTenPinBowlingGame implements MultiPlayerBowlingGame {
         }
     }
 
-    public Map<String, BowlingGame> score() {
-        this.board.forEach((key, value) -> value.score());
-        return this.board;
+    public Map<String, List<Frame>> score() {
+        return this.board.entrySet().stream()
+                .collect(Collectors.toMap(
+                        e -> e.getKey(),
+                        e -> e.getValue().score())
+                );
     }
 
 }
