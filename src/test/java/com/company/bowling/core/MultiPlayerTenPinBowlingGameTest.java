@@ -5,7 +5,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockitoAnnotations;
 
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -32,7 +31,7 @@ public class MultiPlayerTenPinBowlingGameTest {
         roll(playerName, "10", "0", "0", "0", "0", "0", "0", "0", "0",
                 "0", "0", "0", "0", "0", "0", "0", "0", "0", "0");
         // when
-        Map<String, List<Frame>> score = game.score();
+        Map<String, BowlingGame> score = game.score();
         // then
         assertTrue(score.containsKey(playerName));
         assertNotNull(score.get(playerName));
@@ -44,12 +43,12 @@ public class MultiPlayerTenPinBowlingGameTest {
         String playerName = "Jeff";
         roll(playerName, "5", "4", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0");
         // when
-        Map<String, List<Frame>> score = game.score();
+        Map<String, BowlingGame> score = game.score();
         // then
         assertTrue(score.containsKey(playerName));
         assertNotNull(score.get(playerName));
         int firstFrameIndex = 0;
-        int firstFrameScore = score.get(playerName).get(firstFrameIndex).getScore();
+        int firstFrameScore = score.get(playerName).score().get(firstFrameIndex).getScore();
         int expectedFirstFrameScore = 9;
         assertEquals(expectedFirstFrameScore, firstFrameScore);
     }
@@ -65,7 +64,7 @@ public class MultiPlayerTenPinBowlingGameTest {
                 "5", "0", "0", "0", "0", "0", "0", "0", "0", "0",
                 "0", "0", "0", "0", "0", "0", "0", "0", "0", "0");
         // when
-        Map<String, List<Frame>> score = game.score();
+        Map<String, BowlingGame> score = game.score();
         // then
         assertTrue(score.containsKey(firstPlayerName));
         assertNotNull(score.get(firstPlayerName));
@@ -86,17 +85,17 @@ public class MultiPlayerTenPinBowlingGameTest {
                 "2", "F", "0", "0", "0", "0", "0", "0", "0", "0",
                 "0", "0", "0", "0", "0", "0", "0", "0", "0", "0");
         // when
-        Map<String, List<Frame>> score = game.score();
+        Map<String, BowlingGame> score = game.score();
         // then
         assertTrue(score.containsKey(firstPlayerName));
         assertNotNull(score.get(firstPlayerName));
         int firstFrameIndex = 0;
-        int firstPlayerFirstFrameScore = score.get(firstPlayerName).get(firstFrameIndex).getScore();
+        int firstPlayerFirstFrameScore = score.get(firstPlayerName).score().get(firstFrameIndex).getScore();
         int expectedFirstPlayerFirstFrameScore = 6;
         assertEquals(expectedFirstPlayerFirstFrameScore, firstPlayerFirstFrameScore);
         assertTrue(score.containsKey(secondPlayerName));
         assertNotNull(score.get(secondPlayerName));
-        int secondPlayerFirstFrameScore = score.get(secondPlayerName).get(firstFrameIndex).getScore();
+        int secondPlayerFirstFrameScore = score.get(secondPlayerName).score().get(firstFrameIndex).getScore();
         int expectedSecondPlayerFirstFrameScore = 2;
         assertEquals(expectedSecondPlayerFirstFrameScore, secondPlayerFirstFrameScore);
     }
