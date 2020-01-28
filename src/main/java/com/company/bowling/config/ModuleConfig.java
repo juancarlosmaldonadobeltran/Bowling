@@ -17,7 +17,6 @@ public final class ModuleConfig extends AbstractModule {
     @Override
     protected void configure() {
         bind(BowlingGameApp.class).in(Singleton.class);
-        // Interfaces
         bind(BowlingGameCommand.class).to(BowlingGameFileReaderCommand.class);
         bind(BowlingGame.class).to(TenPinBowlingGame.class);
         bind(MultiPlayerBowlingGame.class).to(MultiPlayerTenPinBowlingGame.class);

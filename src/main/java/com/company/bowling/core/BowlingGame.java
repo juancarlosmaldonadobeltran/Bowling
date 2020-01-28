@@ -6,6 +6,6 @@ public interface BowlingGame {
 
     void roll(String knockedPinsMark);
 
-    List<Frame> getFrames();
+    List<Frame> score();
 
 }

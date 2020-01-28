@@ -14,13 +14,13 @@ public class BowlingAppIT {
         String playersRawRollsInputPath = "perfect_game.txt";
         URL resource = classLoader.getResource(playersRawRollsInputPath);
         assert resource != null;
-        String args[] = {resource.getPath()};
+        String[] args = {resource.getPath()};
         BowlingGameApp.main(args);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenAMissingArgPlayersRollsInputFileWhenExecuteMainThenItShouldShowAnError() throws IOException {
-        String args[] = {};
+        String[] args = {};
         BowlingGameApp.main(args);
     }
 }

@@ -1,7 +1,8 @@
 package com.company.bowling.core;
 
-import com.company.bowling.printer.MultiPlayerBowlingGamePrinter;
-import com.google.inject.Inject;
+import com.company.bowling.core.exception.ConsecutiveRollsNotValidException;
+import com.company.bowling.core.exception.PlayerConsecutiveRollsNotValidException;
+import com.company.bowling.core.factory.BowlingGameFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,17 +10,9 @@ import java.util.Map;
 public class MultiPlayerTenPinBowlingGame implements MultiPlayerBowlingGame {
 
     private Map<String, BowlingGame> board;
-    private MultiPlayerBowlingGamePrinter printer;
 
-    @Inject
-    public MultiPlayerTenPinBowlingGame(MultiPlayerBowlingGamePrinter printer) {
+    public MultiPlayerTenPinBowlingGame() {
         this.board = new HashMap<>();
-        this.printer = printer;
-    }
-
-    @Override
-    public void printResults() {
-        this.printer.print(this.board);
     }
 
     @Override
@@ -28,7 +21,16 @@ public class MultiPlayerTenPinBowlingGame implements MultiPlayerBowlingGame {
         if (!this.board.containsKey(key)) {
             this.board.put(key, BowlingGameFactory.getInstance());
         }
-        this.board.get(key).roll(rollInputMark);
+        try {
+            this.board.get(key).roll(rollInputMark);
+        } catch (ConsecutiveRollsNotValidException e) {
+            throw new PlayerConsecutiveRollsNotValidException("Consecutive rolls not valid for player: " + key, e);
+        }
+    }
+
+    public Map<String, BowlingGame> score() {
+        this.board.forEach((key, value) -> value.score());
+        return this.board;
     }
 
 }

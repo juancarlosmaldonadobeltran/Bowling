@@ -1,10 +1,12 @@
 package com.company.bowling.core;
 
+import com.company.bowling.core.exception.ConsecutiveRollsNotValidException;
+import com.company.bowling.core.exception.IncompleteGameException;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -13,34 +15,49 @@ import static org.junit.Assert.assertFalse;
 
 public class TenPinBowlingGameTest {
 
-    @Test
-    public void givenZeroAndZeroPinsWhenGetScoreItShouldBeZero() {
-        // given
-        TenPinBowlingGame game = new TenPinBowlingGame();
-        game.roll("0");
-        game.roll("0");
-        // when
-        int firstFrameIndex = 0;
-        Frame firstFrame = game.getFrames().get(firstFrameIndex);
-        int actualScore = firstFrame.getScore().orElseThrow(IllegalStateException::new);
-        List<String> boardMarks = firstFrame.getBoardMarks();
-        // then
-        int expectedScore = 0;
-        assertEquals(expectedScore, actualScore);
-        assertEquals("0", boardMarks.get(0));
-        assertEquals("0", boardMarks.get(1));
+    private TenPinBowlingGame game;
+
+    @Before
+    public void setUp() {
+        this.game = new TenPinBowlingGame();
+    }
+
+    private void roll(String... pins) {
+        Stream.of(pins).forEach(game::roll);
     }
 
     @Test
-    public void givenTwoAndTwoPinsWhenGetScoreItShouldBeFour() {
+    public void givenZeroPinsGameWhenGetScoreThenItShouldBeZero() {
         // given
-        TenPinBowlingGame game = new TenPinBowlingGame();
-        game.roll("2");
-        game.roll("2");
+        roll("0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0");
+        // when
+        List<Frame> score = game.score();
+        // then
+        assertFalse(score.isEmpty());
+        int expectedScore = 0;
+        score.forEach(frame -> {
+            assertEquals(expectedScore, frame.getScore());
+            assertEquals("0", frame.getBoardMarks().get(0));
+            assertEquals("0", frame.getBoardMarks().get(1));
+        });
+    }
+
+    @Test(expected = ConsecutiveRollsNotValidException.class)
+    public void givenMoreThanTenPinsInTwoConsecutiveRollsBeforeTenthFrameWhenRollTheSecondOneThenItShouldShowAnError() {
+        // given
+        game.roll("5");
+        // when
+        game.roll("6");
+    }
+
+    @Test
+    public void givenASimpleFrameWhenGetScoreItShouldCalculateTheScore() {
+        // given
+        roll("2", "2", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0");
         // when
         int firstFrameIndex = 0;
-        Frame firstFrame = game.getFrames().get(firstFrameIndex);
-        int actualScore = firstFrame.getScore().orElseThrow(IllegalStateException::new);
+        Frame firstFrame = game.score().get(firstFrameIndex);
+        int actualScore = firstFrame.getScore();
         List<String> boardMarks = firstFrame.getBoardMarks();
         // then
         int expectedScore = 4;
@@ -50,15 +67,13 @@ public class TenPinBowlingGameTest {
     }
 
     @Test
-    public void givenTwoFoulsWhenGetScoreItShouldBeZero() {
+    public void givenTwoFoulsFrameWhenGetScoreItShouldBeZero() {
         // given
-        TenPinBowlingGame game = new TenPinBowlingGame();
-        game.roll("F");
-        game.roll("F");
+        roll("F", "F", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0");
         // when
         int firstFrameIndex = 0;
-        Frame firstFrame = game.getFrames().get(firstFrameIndex);
-        int actualScore = firstFrame.getScore().orElseThrow(IllegalStateException::new);
+        Frame firstFrame = game.score().get(firstFrameIndex);
+        int actualScore = firstFrame.getScore();
         List<String> boardMarks = firstFrame.getBoardMarks();
         // then
         int expectedScore = 0;
@@ -70,13 +85,11 @@ public class TenPinBowlingGameTest {
     @Test
     public void givenFiveAndFoulWhenGetScoreItShouldBeFive() {
         // given
-        TenPinBowlingGame game = new TenPinBowlingGame();
-        game.roll("5");
-        game.roll("F");
+        roll("5", "F", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0");
         // when
         int firstFrameIndex = 0;
-        Frame firstFrame = game.getFrames().get(firstFrameIndex);
-        int actualScore = firstFrame.getScore().orElseThrow(IllegalStateException::new);
+        Frame firstFrame = game.score().get(firstFrameIndex);
+        int actualScore = firstFrame.getScore();
         List<String> boardMarks = firstFrame.getBoardMarks();
         // then
         int expectedScore = 5;
@@ -88,13 +101,11 @@ public class TenPinBowlingGameTest {
     @Test
     public void givenFoulAndFiveWhenGetScoreItShouldBeFive() {
         // given
-        TenPinBowlingGame game = new TenPinBowlingGame();
-        game.roll("F");
-        game.roll("5");
+        roll("F", "5", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0");
         // when
         int firstFrameIndex = 0;
-        Frame firstFrame = game.getFrames().get(firstFrameIndex);
-        int actualScore = firstFrame.getScore().orElseThrow(IllegalStateException::new);
+        Frame firstFrame = game.score().get(firstFrameIndex);
+        int actualScore = firstFrame.getScore();
         List<String> boardMarks = firstFrame.getBoardMarks();
         // then
         int expectedScore = 5;
@@ -106,22 +117,17 @@ public class TenPinBowlingGameTest {
     @Test
     public void givenSpareAndOneWhenGetFirstAndSecondFrameScoresTheyShouldBeElevenAndEmpty() {
         // given
-        TenPinBowlingGame game = new TenPinBowlingGame();
-        game.roll("5");
-        game.roll("5");
-        game.roll("1");
+        roll("5", "5", "1", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0");
         // when
         int firstFrameIndex = 0;
-        Frame firstFrame = game.getFrames().get(firstFrameIndex);
-        int firstFrameActualScore = firstFrame.getScore()
-                .orElseThrow(IllegalStateException::new);
+        Frame firstFrame = game.score().get(firstFrameIndex);
+        int firstFrameActualScore = firstFrame.getScore();
         int secondFrameIndex = 1;
-        Optional<Integer> secondFrameScore = game.getFrames().get(secondFrameIndex).getScore();
+        Integer secondFrameScore = game.score().get(secondFrameIndex).getScore();
         List<String> boardMarks = firstFrame.getBoardMarks();
         // then
         int firstFrameExpectedScore = 11;
         assertEquals(firstFrameExpectedScore, firstFrameActualScore);
-        assertFalse(secondFrameScore.isPresent());
         assertEquals("5", boardMarks.get(0));
         assertEquals("/", boardMarks.get(1));
     }
@@ -129,19 +135,14 @@ public class TenPinBowlingGameTest {
     @Test
     public void givenStrikeAndFiveAndFourWhenGetFirstAndSecondFrameScoresTheyShouldBeNineteenAndNine() {
         // given
-        TenPinBowlingGame game = new TenPinBowlingGame();
-        game.roll("10");
-        game.roll("5");
-        game.roll("4");
+        roll("10", "5", "4", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0");
         // when
         int firstFrameIndex = 0;
-        Frame firstFrame = game.getFrames().get(firstFrameIndex);
-        int firstFrameActualScore = firstFrame.getScore()
-                .orElseThrow(IllegalStateException::new);
+        Frame firstFrame = game.score().get(firstFrameIndex);
+        int firstFrameActualScore = firstFrame.getScore();
         int secondFrameIndex = 1;
-        Frame secondFrame = game.getFrames().get(secondFrameIndex);
-        int secondFrameActualScore = secondFrame.getScore()
-                .orElseThrow(IllegalStateException::new);
+        Frame secondFrame = game.score().get(secondFrameIndex);
+        int secondFrameActualScore = secondFrame.getScore();
         List<String> firstFrameBoardMarks = firstFrame.getBoardMarks();
         List<String> secondFrameBoardMarks = secondFrame.getBoardMarks();
         // then
@@ -158,24 +159,19 @@ public class TenPinBowlingGameTest {
     @Test
     public void givenStrikeAndSpareWhenGetFirstAndSecondFrameScoresTheyShouldBeTwentyAndEmpty() {
         // given
-        TenPinBowlingGame game = new TenPinBowlingGame();
-        game.roll("10");
-        game.roll("5");
-        game.roll("5");
+        roll("10", "5", "5", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0");
         // when
         int firstFrameIndex = 0;
-        Frame firstFrame = game.getFrames().get(firstFrameIndex);
-        int firstFrameActualScore = firstFrame.getScore()
-                .orElseThrow(IllegalStateException::new);
+        Frame firstFrame = game.score().get(firstFrameIndex);
+        int firstFrameActualScore = firstFrame.getScore();
         int secondFrameIndex = 1;
-        Frame secondFrame = game.getFrames().get(secondFrameIndex);
-        Optional<Integer> secondFrameScore = secondFrame.getScore();
+        Frame secondFrame = game.score().get(secondFrameIndex);
+        Integer secondFrameScore = secondFrame.getScore();
         List<String> firstFrameBoardMarks = firstFrame.getBoardMarks();
         List<String> secondFrameBoardMarks = secondFrame.getBoardMarks();
         // then
         int firstFrameExpectedScore = 20;
         assertEquals(firstFrameExpectedScore, firstFrameActualScore);
-        assertFalse(secondFrameScore.isPresent());
         assertEquals("", firstFrameBoardMarks.get(0));
         assertEquals("X", firstFrameBoardMarks.get(1));
         assertEquals("5", secondFrameBoardMarks.get(0));
@@ -185,21 +181,17 @@ public class TenPinBowlingGameTest {
     @Test
     public void givenStrikeAndStrikeWhenGetFirstAndSecondFrameScoresTheyShouldBeEmptyAndEmpty() {
         // given
-        TenPinBowlingGame game = new TenPinBowlingGame();
-        game.roll("10");
-        game.roll("10");
+        roll("10", "10", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0");
         // when
         int firstFrameIndex = 0;
-        Frame firstFrame = game.getFrames().get(firstFrameIndex);
-        Optional<Integer> firstFrameScore = firstFrame.getScore();
+        Frame firstFrame = game.score().get(firstFrameIndex);
+        Integer firstFrameScore = firstFrame.getScore();
         int secondFrameIndex = 1;
-        Frame secondFrame = game.getFrames().get(secondFrameIndex);
-        Optional<Integer> secondFrameScore = secondFrame.getScore();
+        Frame secondFrame = game.score().get(secondFrameIndex);
+        Integer secondFrameScore = secondFrame.getScore();
         List<String> firstFrameBoardMarks = firstFrame.getBoardMarks();
         List<String> secondFrameBoardMarks = secondFrame.getBoardMarks();
         // then
-        assertFalse(firstFrameScore.isPresent());
-        assertFalse(secondFrameScore.isPresent());
         assertEquals("", firstFrameBoardMarks.get(0));
         assertEquals("X", firstFrameBoardMarks.get(1));
         assertEquals("", secondFrameBoardMarks.get(0));
@@ -209,29 +201,23 @@ public class TenPinBowlingGameTest {
     @Test
     public void givenThreeStrikesWhenGetFirstSecondAndThirdFrameScoresTheyShouldBeThirtyAndEmptyAndEmpty() {
         // given
-        TenPinBowlingGame game = new TenPinBowlingGame();
-        game.roll("10");
-        game.roll("10");
-        game.roll("10");
+        roll("10", "10", "10", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0");
         // when
         int firstFrameIndex = 0;
-        Frame firstFrame = game.getFrames().get(firstFrameIndex);
-        int firstFrameActualScore = firstFrame.getScore()
-                .orElseThrow(IllegalStateException::new);
+        Frame firstFrame = game.score().get(firstFrameIndex);
+        int firstFrameActualScore = firstFrame.getScore();
         int secondFrameIndex = 1;
-        Frame secondFrame = game.getFrames().get(secondFrameIndex);
-        Optional<Integer> secondFrameScore = secondFrame.getScore();
+        Frame secondFrame = game.score().get(secondFrameIndex);
+        Integer secondFrameScore = secondFrame.getScore();
         int thirdFrameIndex = 2;
-        Frame thirdFrame = game.getFrames().get(thirdFrameIndex);
-        Optional<Integer> thirdFrameScore = thirdFrame.getScore();
+        Frame thirdFrame = game.score().get(thirdFrameIndex);
+        Integer thirdFrameScore = thirdFrame.getScore();
         List<String> firstFrameBoardMarks = firstFrame.getBoardMarks();
         List<String> secondFrameBoardMarks = secondFrame.getBoardMarks();
         List<String> thirdFrameBoardMarks = thirdFrame.getBoardMarks();
         // then
         int firstFrameExpectedScore = 30;
         assertEquals(firstFrameExpectedScore, firstFrameActualScore);
-        assertFalse(secondFrameScore.isPresent());
-        assertFalse(thirdFrameScore.isPresent());
         assertEquals("", firstFrameBoardMarks.get(0));
         assertEquals("X", firstFrameBoardMarks.get(1));
         assertEquals("", secondFrameBoardMarks.get(0));
@@ -241,37 +227,13 @@ public class TenPinBowlingGameTest {
     }
 
     @Test
-    public void givenTwentyZerosWhenGetTenthFrameScoreItShouldBeZero() {
+    public void givenTwentyFoulsWhenScoreItShouldBeZero() {
         // given
-        TenPinBowlingGame game = new TenPinBowlingGame();
-        for (int i = 0; i < 20; i++) {
-            game.roll("0");
-        }
+        roll("F", "F", "F", "F", "F", "F", "F", "F", "F", "F", "F", "F", "F", "F", "F", "F", "F", "F", "F", "F");
         // when
         int tenthFrameIndex = 9;
-        Frame tenthFrame = game.getFrames().get(tenthFrameIndex);
-        int tenthFrameActualScore = tenthFrame.getScore()
-                .orElseThrow(IllegalStateException::new);
-        List<String> tenthFrameBoardMarks = tenthFrame.getBoardMarks();
-        // then
-        int tenthFrameExpectedScore = 0;
-        assertEquals(tenthFrameExpectedScore, tenthFrameActualScore);
-        assertEquals("0", tenthFrameBoardMarks.get(0));
-        assertEquals("0", tenthFrameBoardMarks.get(1));
-    }
-
-    @Test
-    public void givenTwentyFoulsWhenGetTenthFrameScoreItShouldBeZero() {
-        // given
-        TenPinBowlingGame game = new TenPinBowlingGame();
-        for (int i = 0; i < 20; i++) {
-            game.roll("F");
-        }
-        // when
-        int tenthFrameIndex = 9;
-        Frame tenthFrame = game.getFrames().get(tenthFrameIndex);
-        int tenthFrameActualScore = tenthFrame.getScore()
-                .orElseThrow(IllegalStateException::new);
+        Frame tenthFrame = game.score().get(tenthFrameIndex);
+        int tenthFrameActualScore = tenthFrame.getScore();
         List<String> tenthFrameBoardMarks = tenthFrame.getBoardMarks();
         // then
         int tenthFrameExpectedScore = 0;
@@ -281,20 +243,13 @@ public class TenPinBowlingGameTest {
     }
 
     @Test
-    public void givenEighteenZerosAndSpareAndFiveInTenthFrameWhenGetTenthFrameScoreItShouldBeFifteen() {
+    public void givenEighteenZerosAndSpareAndFiveInTenthFrameWhenScoreItShouldBeFifteen() {
         // given
-        TenPinBowlingGame game = new TenPinBowlingGame();
-        for (int i = 0; i < 18; i++) {
-            game.roll("0");
-        }
-        game.roll("7");
-        game.roll("3");
-        game.roll("5");
+        roll("0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "7", "3", "5");
         // when
         int tenthFrameIndex = 9;
-        Frame tenthFrame = game.getFrames().get(tenthFrameIndex);
-        int tenthFrameActualScore = tenthFrame.getScore()
-                .orElseThrow(IllegalStateException::new);
+        Frame tenthFrame = game.score().get(tenthFrameIndex);
+        int tenthFrameActualScore = tenthFrame.getScore();
         List<String> tenthFrameBoardMarks = tenthFrame.getBoardMarks();
         // then
         int tenthFrameExpectedScore = 15;
@@ -306,17 +261,13 @@ public class TenPinBowlingGameTest {
     }
 
     @Test
-    public void givenTwelveStrikesWhenGetTenthFrameScoreItShouldBeThreeHundred() {
+    public void givenAPerfectGameWhenScoreItShouldBeThreeHundred() {
         // given
-        TenPinBowlingGame game = new TenPinBowlingGame();
-        for (int i = 0; i < 12; i++) {
-            game.roll("10");
-        }
+        roll("10", "10", "10", "10", "10", "10", "10", "10", "10", "10", "10", "10");
         // when
         int tenthFrameIndex = 9;
-        Frame tenthFrame = game.getFrames().get(tenthFrameIndex);
-        int tenthFrameActualScore = tenthFrame.getScore()
-                .orElseThrow(IllegalStateException::new);
+        Frame tenthFrame = game.score().get(tenthFrameIndex);
+        int tenthFrameActualScore = tenthFrame.getScore();
         List<String> tenthFrameBoardMarks = tenthFrame.getBoardMarks();
         // then
         int tenthFrameExpectedScore = 300;
@@ -328,19 +279,12 @@ public class TenPinBowlingGameTest {
 
     @Test
     public void givenGameWhenGetAllFrameScoreItShouldBeWellCalculated() {
-        // given
-        TenPinBowlingGame game = new TenPinBowlingGame();
-        // See: https://www.youtube.com/watch?v=aBe71sD8o8c
-        Stream.of("8", "2", "7", "3",
-                "3", "4", "10",
-                "2", "8", "10",
-                "10", "8", "0",
-                "10", "8", "2", "9").forEach(game::roll);
+        roll("8", "2", "7", "3", "3", "4", "10", "2", "8", "10", "10", "8", "0", "10", "8", "2", "9");
         // when
-        List<Frame> frames = game.getFrames();
+        List<Frame> frames = game.score();
         // then
         int expectedFrames = 10;
-        assertEquals(expectedFrames, game.getFrames().size());
+        assertEquals(expectedFrames, game.score().size());
         List<Integer> expectedScores = Arrays.asList(17, 30, 37, 57, 77, 105, 123, 131, 151, 170);
         List<List<String>> expectedBoardMarks = Arrays.asList(
                 Arrays.asList("8", "/"),
@@ -356,8 +300,7 @@ public class TenPinBowlingGameTest {
         );
         IntStream.range(0, expectedScores.size()).forEach(frameIndex -> {
             Frame actualFrame = frames.get(frameIndex);
-            assertEquals(expectedScores.get(frameIndex), actualFrame.getScore()
-                    .orElseThrow(IllegalStateException::new));
+            assertEquals(expectedScores.get(frameIndex).intValue(), actualFrame.getScore());
             List<String> expectedFrameBoardMarks = expectedBoardMarks.get(frameIndex);
             List<String> actualFrameBoardMarks = actualFrame.getBoardMarks();
             IntStream.range(0, expectedBoardMarks.get(frameIndex).size()).forEach(boardMarkIndex ->
@@ -368,24 +311,18 @@ public class TenPinBowlingGameTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void givenANegativeNumberOfKnockedPinsWhenRollThenShouldShowError() {
-        // given
-        TenPinBowlingGame game = new TenPinBowlingGame();
         // when
         game.roll("-1");
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenMoreThanTenKnockedPinsWhenRollThenShouldShowError() {
-        // given
-        TenPinBowlingGame game = new TenPinBowlingGame();
         // when
         game.roll("11");
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenUnexpectedKnockedPinsMarkWhenRollThenShouldShowError() {
-        // given
-        TenPinBowlingGame game = new TenPinBowlingGame();
         // when
         game.roll("M");
     }
@@ -393,7 +330,6 @@ public class TenPinBowlingGameTest {
     @Test(expected = IllegalStateException.class)
     public void givenMoreRollsThanMaxAllowedPerGameWhenRollItShouldShowAnError() {
         // given
-        TenPinBowlingGame game = new TenPinBowlingGame();
         for (int i = 0; i < 12; i++) {
             game.roll("10");
         }
@@ -401,4 +337,11 @@ public class TenPinBowlingGameTest {
         game.roll("10");
     }
 
+    @Test(expected = IncompleteGameException.class)
+    public void givenLessThanTenFramesWhenScoreThenItShouldShowError() {
+        // given
+        roll("0", "0");
+        // when
+        game.score();
+    }
 }

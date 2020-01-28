@@ -1,113 +1,110 @@
 package com.company.bowling.core;
 
-import com.company.bowling.printer.MultiPlayerBowlingGamePrinter;
+import com.company.bowling.core.exception.PlayerConsecutiveRollsNotValidException;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.verify;
 
 public class MultiPlayerTenPinBowlingGameTest {
-
-    @Mock
-    private MultiPlayerBowlingGamePrinter printer;
-    @Captor
-    private ArgumentCaptor<Map<String, BowlingGame>> toPrint;
 
     private MultiPlayerBowlingGame game;
 
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        this.game = new MultiPlayerTenPinBowlingGame(this.printer);
+        this.game = new MultiPlayerTenPinBowlingGame();
+    }
+
+    private void roll(String playerName, String... pins) {
+        Stream.of(pins).forEach(pinsRoll -> game.roll(playerName, pinsRoll));
     }
 
     @Test
-    public void givenANewPlayerRollWhenGetResultsItShouldContainsANewBowlingGameForThatPlayer() {
+    public void givenAPlayerRollsWhenGetResultsItShouldContainsABowlingGameForThatPlayer() {
         // given
         String playerName = "Jeff";
-        game.roll(playerName, "10");
+        roll(playerName, "10", "0", "0", "0", "0", "0", "0", "0", "0",
+                "0", "0", "0", "0", "0", "0", "0", "0", "0", "0");
         // when
-        game.printResults();
-        verify(this.printer).print(toPrint.capture());
-        Map<String, BowlingGame> results = toPrint.getValue();
+        Map<String, BowlingGame> score = game.score();
         // then
-        assertTrue(results.containsKey(playerName));
-        assertNotNull(results.get(playerName));
+        assertTrue(score.containsKey(playerName));
+        assertNotNull(score.get(playerName));
     }
 
     @Test
-    public void givenANewPlayerSimpleFrameRollsWhenGetResultsItShouldContainsCurrentPlayerScore() {
+    public void givenAPlayerGameRollsWhenGetResultsItShouldContainsThePlayerScore() {
         // given
         String playerName = "Jeff";
-        game.roll(playerName, "5");
-        game.roll(playerName, "4");
+        roll(playerName, "5", "4", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0");
         // when
-        game.printResults();
-        verify(this.printer).print(toPrint.capture());
-        Map<String, BowlingGame> results = toPrint.getValue();
+        Map<String, BowlingGame> score = game.score();
         // then
-        assertTrue(results.containsKey(playerName));
-        assertNotNull(results.get(playerName));
+        assertTrue(score.containsKey(playerName));
+        assertNotNull(score.get(playerName));
         int firstFrameIndex = 0;
-        int firstFrameScore = results.get(playerName).getFrames().get(firstFrameIndex).getScore()
-                .orElseThrow(IllegalStateException::new);
+        int firstFrameScore = score.get(playerName).score().get(firstFrameIndex).getScore();
         int expectedFirstFrameScore = 9;
         assertEquals(expectedFirstFrameScore, firstFrameScore);
     }
 
     @Test
-    public void givenTwoNewPlayersRollsWhenGetResultsItShouldContainNewBowlingGamesForEachPlayer() {
+    public void givenTwoPlayersGameRollsWhenGetResultsItShouldContainsABowlingGameForEachPlayer() {
         // given
         String firstPlayerName = "Jeff";
-        game.roll(firstPlayerName, "10");
+        roll(firstPlayerName,
+                "10", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0");
         String secondPlayerName = "John";
-        game.roll(secondPlayerName, "5");
+        roll(secondPlayerName,
+                "5", "0", "0", "0", "0", "0", "0", "0", "0", "0",
+                "0", "0", "0", "0", "0", "0", "0", "0", "0", "0");
         // when
-        game.printResults();
-        verify(this.printer).print(toPrint.capture());
-        Map<String, BowlingGame> results = toPrint.getValue();
+        Map<String, BowlingGame> score = game.score();
         // then
-        assertTrue(results.containsKey(firstPlayerName));
-        assertNotNull(results.get(firstPlayerName));
-        assertTrue(results.containsKey(secondPlayerName));
-        assertNotNull(results.get(secondPlayerName));
+        assertTrue(score.containsKey(firstPlayerName));
+        assertNotNull(score.get(firstPlayerName));
+        assertTrue(score.containsKey(secondPlayerName));
+        assertNotNull(score.get(secondPlayerName));
         int expectedNumberOfPlayers = 2;
-        assertEquals(expectedNumberOfPlayers, results.keySet().size());
+        assertEquals(expectedNumberOfPlayers, score.keySet().size());
     }
 
     @Test
-    public void givenTwoSimpleFramesForTwoNewPlayersRollsWhenGetResultsItShouldContainsNewBowlingGamesForEachPlayer() {
+    public void givenTwoGameRollsForTwoPlayersWhenGetResultsItShouldContainsBowlingGamesForEachPlayer() {
         // given
         String firstPlayerName = "Jeff";
-        game.roll(firstPlayerName, "3");
-        game.roll(firstPlayerName, "3");
+        roll(firstPlayerName,
+                "3", "3", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0");
         String secondPlayerName = "John";
-        game.roll(secondPlayerName, "2");
-        game.roll(secondPlayerName, "F");
+        roll(secondPlayerName,
+                "2", "F", "0", "0", "0", "0", "0", "0", "0", "0",
+                "0", "0", "0", "0", "0", "0", "0", "0", "0", "0");
         // when
-        game.printResults();
-        verify(this.printer).print(toPrint.capture());
-        Map<String, BowlingGame> results = toPrint.getValue();
+        Map<String, BowlingGame> score = game.score();
         // then
-        assertTrue(results.containsKey(firstPlayerName));
-        assertNotNull(results.get(firstPlayerName));
+        assertTrue(score.containsKey(firstPlayerName));
+        assertNotNull(score.get(firstPlayerName));
         int firstFrameIndex = 0;
-        int firstPlayerFirstFrameScore = results.get(firstPlayerName).getFrames().get(firstFrameIndex).getScore()
-                .orElseThrow(IllegalStateException::new);
+        int firstPlayerFirstFrameScore = score.get(firstPlayerName).score().get(firstFrameIndex).getScore();
         int expectedFirstPlayerFirstFrameScore = 6;
         assertEquals(expectedFirstPlayerFirstFrameScore, firstPlayerFirstFrameScore);
-        assertTrue(results.containsKey(secondPlayerName));
-        assertNotNull(results.get(secondPlayerName));
-        int secondPlayerFirstFrameScore = results.get(secondPlayerName).getFrames().get(firstFrameIndex).getScore()
-                .orElseThrow(IllegalStateException::new);
+        assertTrue(score.containsKey(secondPlayerName));
+        assertNotNull(score.get(secondPlayerName));
+        int secondPlayerFirstFrameScore = score.get(secondPlayerName).score().get(firstFrameIndex).getScore();
         int expectedSecondPlayerFirstFrameScore = 2;
         assertEquals(expectedSecondPlayerFirstFrameScore, secondPlayerFirstFrameScore);
+    }
+
+    @Test(expected = PlayerConsecutiveRollsNotValidException.class)
+    public void givenTwoInvalidConsecutivePlayersRollsWhenGetResultsItShouldShowError() {
+        // given
+        String playerName = "Jeff";
+        this.game.roll(playerName, "5");
+        this.game.roll(playerName, "7");
     }
 }
